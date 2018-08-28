@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 class CustomControl: UIControl {
-    let value: Int = 1
+    var value: Int = 1
     
     let componentDimension: CGFloat = 40.0
     let componentCount = 5
@@ -23,12 +23,15 @@ class CustomControl: UIControl {
         setup()
     }
     
+    let oneStarSubview = UILabel()
+    let twoStarSubview = UILabel()
+    let threeStarSubview = UILabel()
+    let fourStarSubview = UILabel()
+    let fiveStarSubview = UILabel()
+    
+    var starArray = [UILabel]()
+    
     private func setup() {
-        let oneStarSubview = UILabel()
-        let twoStarSubview = UILabel()
-        let threeStarSubview = UILabel()
-        let fourStarSubview = UILabel()
-        let fiveStarSubview = UILabel()
         
         self.addSubview(oneStarSubview)
         self.addSubview(twoStarSubview)
@@ -73,7 +76,12 @@ class CustomControl: UIControl {
         fiveStarSubview.textAlignment = .center
         fiveStarSubview.textColor = self.componentInactiveColor
         
-        let starArray = [oneStarSubview, twoStarSubview, threeStarSubview, fourStarSubview, fiveStarSubview]
+        starArray.append(oneStarSubview)
+        starArray.append(twoStarSubview)
+        starArray.append(threeStarSubview)
+        starArray.append(fourStarSubview)
+        starArray.append(fiveStarSubview)
+        
     }
     
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
@@ -109,7 +117,18 @@ class CustomControl: UIControl {
     }
     
     func updateValue(at touch: UITouch) {
-        
+        for label in starArray {
+            let touchPoint = touch.location(in: label)
+            if bounds.contains(touchPoint) {
+                value = label.tag
+                label.textColor = componentActiveColor
+                label.performFlare()
+                sendActions(for: [.valueChanged])
+            } else {
+                label.textColor = componentInactiveColor
+                sendActions(for: [.valueChanged])
+            }
+        }
     }
     
     
@@ -120,4 +139,16 @@ class CustomControl: UIControl {
         return CGSize(width: width, height: componentDimension)
     }
     
+}
+
+extension UIView {
+    // "Flare view" animation sequence
+    func performFlare() {
+        func flare()   { transform = CGAffineTransform(scaleX: 1.6, y: 1.6) }
+        func unflare() { transform = .identity }
+        
+        UIView.animate(withDuration: 0.3,
+                       animations: { flare() },
+                       completion: { _ in UIView.animate(withDuration: 0.1) { unflare() }})
+    }
 }
